@@ -15,4 +15,14 @@
 
 ---
 
+
+| Integrante | Responsabilidade | GitHub |
+|---|---|---|
+| Lucas | Tech Lead / Arquitetura | [![GitHub](https://img.shields.io/badge/GitHub-Eluriomilmar-181717?logo=github)](https://github.com/Eluriomilmar) |
+| Cleber | Organização / Segurança / Python | [![GitHub](https://img.shields.io/badge/GitHub-bin--ribeiro-181717?logo=github)](https://github.com/bin-ribeiro) |
+| Thiago | Segurança JWT / ViaCEP | [![GitHub](https://img.shields.io/badge/GitHub-thiagorosabio-181717?logo=github)](https://github.com/thiagorosabio) |
+| Lara | QA | [![GitHub](https://img.shields.io/badge/GitHub-Lara--Karolinne-181717?logo=github)](https://github.com/Lara-Karolinne) |
+| Filipe | README / Apresentação | [![GitHub](https://img.shields.io/badge/GitHub-FilipeSantos34-181717?logo=github)](https://github.com/FilipeSantos34) |
+
+
 **Sistema desenvolvido com Java, Spring Boot, Spring Security e Python.**
