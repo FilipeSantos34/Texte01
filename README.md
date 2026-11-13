@@ -3,7 +3,7 @@
 
 <p align="center">
 
-![Java](https://img.shields.io/badge/Java-17-orange?logo=openjdk&logoColor=white)
+![Java](https://img.shields.io/badge/Java-25-orange?logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.6-6DB33F?logo=springboot&logoColor=white)
 ![Maven](https://img.shields.io/badge/Maven-Build-C71A36?logo=apachemaven&logoColor=white)
 ![Spring Security](https://img.shields.io/badge/Spring%20Security-Enabled-6DB33F?logo=springsecurity&logoColor=white)
@@ -53,8 +53,8 @@ Nosso projeto busca solucionar esses problemas por meio de um sistema que organi
 
 | Tecnologia | Finalidade |
 | --- | --- |
-| Java 17 | Linguagem principal do sistema |
-| Spring Boot 3.5.6 | Estrutura e inicialização da aplicação |
+| Java 25 | Linguagem principal do sistema |
+| Spring Boot 4.1.2 | Estrutura e inicialização da aplicação |
 | Maven | Gerenciamento de dependências e compilação |
 | Spring Web | Criação das rotas HTTP da API |
 | Spring Data JPA | Comunicação com o banco de dados |
