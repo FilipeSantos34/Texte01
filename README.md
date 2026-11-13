@@ -1,236 +1,378 @@
-Filipe. O conteúdo está bom, mas a numeração ficou repetida, há alguns trechos fora de ordem e apareceram códigos como bashCopy e jsonCopy. Organizei abaixo em uma sequência mais profissional, mantendo a linguagem simples para o README.
-
-📘 README - Sistema de Empréstimo de Equipamentos
-1. Nome do projeto
-
-Sistema de Empréstimo de Equipamentos
-
-2. Qual problema queremos resolver?
-
-Hoje, o controle de equipamentos pode ser feito por planilhas, o que pode causar problemas como:
-
-Não saber exatamente quais equipamentos estão disponíveis;
-Emprestar o mesmo equipamento para duas pessoas;
-Não perceber rapidamente uma devolução atrasada.
-
-Nosso projeto cria um sistema para organizar melhor os equipamentos e tornar o controle de empréstimos e devoluções mais simples e seguro.
-
-3. O que o sistema faz?
-
-O sistema permite:
-
-Cadastrar equipamentos com patrimônio único;
-Cadastrar colaboradores e preencher o endereço pelo ViaCEP;
-Registrar empréstimos com prazo padrão de 14 dias;
-Impedir que um equipamento já emprestado seja emprestado novamente;
-Registrar a devolução e liberar o equipamento;
-Consultar empréstimos;
-Filtrar empréstimos atrasados;
-Proteger rotas com JWT e perfis ADMIN e COLABORADOR;
-Gerar uma planilha Excel com equipamentos atrasados e quantidade emprestada por tipo.
-4. Tecnologias utilizadas
-Tecnologia	Para que serve	Explicação simplesJava 17	Linguagem principal	O idioma usado para escrever as instruções do programa.
-Spring Boot 3.5.6	Organiza e inicia a aplicação	Uma caixa de ferramentas para montar o sistema Java.
-Maven	Dependências e compilação	Baixa as bibliotecas necessárias e prepara o projeto.
-Spring Web	Rotas HTTP da API	Permite que a tela e o Postman conversem com o Java.
-Spring Data JPA	Acesso ao banco	Ajuda a guardar, procurar e atualizar informações.
-JPA / Hibernate	Mapeamento objeto-relacional	Liga as classes Java às tabelas do banco.
-H2 Database	Banco de dados local	O armário onde ficam equipamentos, pessoas e empréstimos.
-Spring Security	Segurança e permissões	O porteiro que confere quem pode entrar em cada lugar.
-JWT	Autenticação por token	Um crachá digital temporário usado nas rotas protegidas.
-JJWT 0.12.6	Criar e validar JWT	Biblioteca que cria e confere os tokens.
-BCrypt	Proteção de senhas	Transforma a senha em uma representação protegida.
-Bean Validation	Validação de dados	Confere campos obrigatórios, e-mail e formato do CEP.
-RestClient	Chamadas HTTP externas	O telefone usado para consultar o ViaCEP.
-ViaCEP	Buscar endereço	Retorna rua, bairro, cidade e estado pelo CEP.
-Springdoc OpenAPI / Swagger UI	Documentar e testar a API	Manual interativo para experimentar as rotas.
-JUnit 5	Testes automatizados	Confere se as regras estão funcionando corretamente.
-Spring Boot Test	Teste integrado	Ajuda a verificar se o sistema consegue iniciar.
-Spring Security Test	Testes de segurança	Ajuda a testar usuários e permissões.
-HTML	Estrutura da página	O esqueleto da tela: títulos, campos e botões.
-JavaScript	Comunicação da tela com a API	Envia pedidos para a API ao clicar nos botões.
-Python 3	Relatório automático	Cria a planilha de gestão.
-Requests	Requisições HTTP em Python	Permite ao relatório solicitar informações da API.
-Pandas	Organização dos dados	Separa atrasados e conta equipamentos por tipo.
-OpenPyXL	Criação do Excel	Escreve os resultados no arquivo .xlsx.
-Postman	Testar rotas	Controle remoto para enviar pedidos para a API.
-VS Code / NetBeans / IntelliJ	Editores	Programas usados para abrir, editar e executar o projeto.
-5. Como o sistema funciona por dentro?
-
-De forma simples:
-
-Usuário
-   ↓
-Tela
-   ↓
-Controller
-   ↓
-Service
-   ↓
-Repository
-   ↓
-Banco H2
 
 
-Também existem integrações externas:
+# 📘 Sistema de Empréstimo de Equipamentos
 
-Sistema → ViaCEP → Endereço
+Sistema desenvolvido para facilitar o gerenciamento de equipamentos, colaboradores, empréstimos e devoluções, oferecendo mais organização, segurança e controle.
 
-Sistema → API → Python → Relatório Excel
+---
 
+## 📌 1. Sobre o projeto
 
-A arquitetura utiliza uma organização em camadas. As principais regras do sistema ficam na camada Service.
+### Qual problema queremos resolver?
 
-6. Como executar o projeto?
-Extraia o arquivo ZIP do projeto.
-Abra a pasta no VS Code ou importe o pom.xml no NetBeans/IntelliJ como projeto Maven.
-Configure o JDK 17 ou superior.
-Abra o terminal na pasta onde está o pom.xml.
-Execute:
+Atualmente, o controle de equipamentos pode ser realizado por meio de planilhas, o que pode gerar problemas como:
+
+- Dificuldade para identificar quais equipamentos estão disponíveis.
+- Possibilidade de emprestar o mesmo equipamento para duas pessoas.
+- Falta de controle sobre devoluções atrasadas.
+- Dificuldade para consultar o histórico de empréstimos.
+
+Nosso projeto busca solucionar esses problemas por meio de um sistema que organiza o cadastro de equipamentos e colaboradores, controla os empréstimos e facilita o acompanhamento das devoluções.
+
+## 🚀 2. Funcionalidades do sistema
+
+- Cadastro de equipamentos com número de patrimônio único.
+- Cadastro de colaboradores com preenchimento de endereço via ViaCEP.
+- Registro de empréstimos com prazo padrão de 14 dias.
+- Bloqueio de empréstimos de equipamentos que já estejam emprestados.
+- Registro de devoluções e liberação automática dos equipamentos.
+- Consulta de empréstimos e identificação de atrasos.
+- Autenticação com JWT.
+- Controle de acesso por perfis ADMIN e COLABORADOR.
+- Geração de relatórios em Excel com:
+  - Empréstimos atrasados.
+  - Quantidade de equipamentos emprestados por tipo.
+
+## 🛠️ 3. Tecnologias utilizadas
+
+| Tecnologia | Finalidade |
+| --- | --- |
+| Java 17 | Linguagem principal do sistema |
+| Spring Boot 3.5.6 | Estrutura e inicialização da aplicação |
+| Maven | Gerenciamento de dependências e compilação |
+| Spring Web | Criação das rotas HTTP da API |
+| Spring Data JPA | Comunicação com o banco de dados |
+| Hibernate | Mapeamento objeto-relacional |
+| H2 Database | Banco de dados local |
+| Spring Security | Segurança e controle de permissões |
+| JWT | Autenticação por token |
+| JJWT 0.12.6 | Criação e validação de tokens JWT |
+| BCrypt | Criptografia das senhas |
+| Bean Validation | Validação dos dados recebidos |
+| RestClient | Comunicação com APIs externas |
+| ViaCEP | Consulta de endereços pelo CEP |
+| Springdoc OpenAPI / Swagger UI | Documentação e testes da API |
+| JUnit 5 | Testes automatizados |
+| Spring Boot Test | Testes de integração |
+| Spring Security Test | Testes de segurança |
+| HTML | Estrutura da interface web |
+| JavaScript | Comunicação entre tela e API |
+| Python 3 | Geração de relatórios |
+| Requests | Requisições HTTP em Python |
+| Pandas | Organização e análise dos dados |
+| OpenPyXL | Geração de planilhas Excel |
+| Postman | Testes das rotas da API |
+| VS Code / NetBeans / IntelliJ | Ambientes de desenvolvimento |
+
+## 🏗️ 4. Arquitetura do sistema
+
+O projeto utiliza uma arquitetura em camadas, separando as responsabilidades para facilitar a manutenção e organização do código.
+
+### Fluxo principal
+
+text
+
+```text
+        USUÁRIO
+           |
+           v
+       INTERFACE
+           |
+           v
+       CONTROLLER
+           |
+           v
+        SERVICE
+           |
+           v
+       REPOSITORY
+           |
+           v
+       BANCO H2
+```
+
+### Integrações externas
+
+text
+
+```text
+Sistema ---> ViaCEP ---> Consulta de endereço
+
+Sistema ---> API ---> Python ---> Relatório Excel
+```
+
+As regras de negócio ficam concentradas na camada Service, enquanto os Controllers recebem as requisições e os Repositories realizam as operações no banco de dados.
+
+## 💻 5. Como executar o projeto
+
+### Pré-requisitos
+
+- Java JDK 17 ou superior.
+- Maven.
+- VS Code, NetBeans ou IntelliJ IDEA.
+- Postman (opcional, para testar a API).
+- Python 3 (para gerar os relatórios).
+
+### Passo a passo
+
+**1\. Clone o repositório**
+
+bash
+
+```bash
+git clone URL_DO_REPOSITORIO
+```
+
+**2\. Acesse a pasta do projeto**
+
+bash
+
+```bash
+cd nome-do-projeto
+```
+
+**3\. Abra o projeto na IDE**
+
+Importe o arquivo `pom.xml` como um projeto Maven.
+
+**4\. Execute a aplicação**
+
+No terminal, dentro da pasta onde está o `pom.xml`, execute:
+
+bash
+
+```bash
 mvn spring-boot:run
+```
 
+### Endereços da aplicação
 
-Depois que o sistema iniciar:
+| Serviço | Endereço |
+| --- | --- |
+| Sistema Web | [http://localhost:8080](<http://localhost:8080>) |
+| Swagger UI | [http://localhost:8080/swagger-ui/index.html](<http://localhost:8080/swagger-ui/index.html>) |
+| Console H2 | [http://localhost:8080/h2-console](<http://localhost:8080/h2-console>) |
 
-Aplicação: http://localhost:8080
-Swagger: http://localhost:8080/swagger-ui/index.html
-H2 Console: http://localhost:8080/h2-console
-Configuração do banco H2
-JDBC URL: jdbc:h2:file:./dados/emprestimos
-Usuário: sa
-Senha: vazia
+### Configuração do banco H2
 
-7. Usuários de demonstração
-Perfil	Usuário	SenhaADMIN	admin	admin123
-COLABORADOR	colaborador	colab123
+| Configuração | Valor |
+| --- | --- |
+| JDBC URL | `jdbc:h2:file:./dados/emprestimos` |
+| Usuário | `sa` |
+| Senha | (vazia) |
 
-⚠️ Esses usuários são apenas para demonstração. Essas senhas não devem ser utilizadas em um sistema publicado na internet.
+## 🔐 6. Autenticação e segurança JWT
 
-8. Como funciona o JWT?
-🎫 JWT explicado de forma simples
+O sistema utiliza JWT (JSON Web Token) para autenticar usuários e proteger as rotas da API.
 
-Imagine que a API é uma escola com salas protegidas:
+### Perfis de acesso
 
-AuthController - Recepção: recebe o usuário e a senha;
-TokenService - Máquina de crachás: cria um crachá digital JWT depois do login e verifica se ele ainda é válido;
-FiltroJwt - Segurança da porta: procura o crachá no campo Authorization;
-SecurityConfig - Regras da escola: define quais portas são públicas e quais precisam de login ou perfil ADMIN.
+- **ADMIN:** possui permissões administrativas, como cadastrar equipamentos, colaboradores e registrar empréstimos e devoluções.
+- **COLABORADOR:** possui acesso às funcionalidades de consulta permitidas pelo sistema.
 
-O JWT não é a senha. Ele funciona como uma autorização temporária.
+### Usuários de demonstração
 
-Se o token for alterado ou estiver vencido, a API não deve aceitá-lo.
+| Perfil | Usuário | Senha |
+| --- | --- | --- |
+| ADMIN | `admin` | `admin123` |
+| COLABORADOR | `colaborador` | `colab123` |
 
-Testando o JWT no Postman
+> ⚠️ Atenção: essas credenciais são destinadas exclusivamente ao ambiente local de demonstração. Não utilize essas senhas em ambientes publicados na internet.
 
-Faça a requisição:
+### Como funciona o JWT?
 
+Imagine que a API seja uma escola com salas protegidas:
+
+- **AuthController:** é a recepção, que recebe o usuário e a senha.
+- **TokenService:** é a máquina que cria os crachás digitais (tokens JWT).
+- **FiltroJwt:** é o segurança que verifica o crachá em cada requisição protegida.
+- **SecurityConfig:** define quais áreas são públicas e quais exigem autenticação ou perfil ADMIN.
+
+O JWT funciona como um crachá digital temporário. Ele não é a senha do usuário, mas uma autorização que permite acessar determinadas funcionalidades enquanto estiver válido.
+
+### Como testar o login no Postman?
+
+**1\. Envie uma requisição POST:**
+
+http
+
+```http
 POST http://localhost:8080/auth/login
+```
 
+**2\. No Body, selecione raw → JSON:**
 
-Endpoint de login
+json
 
-No Postman, escolha:
-
-Body → raw → JSON
-
+```json
 {
   "usuario": "admin",
   "senha": "admin123"
 }
+```
 
+**3\. Copie o campo****`token`****retornado pela API.**
 
-Depois:
+**4\. Para acessar as rotas protegidas:**
 
-Copie o campo token;
-Abra outra requisição;
-Vá em Authorization;
-Escolha Bearer Token;
-Cole o token.
+- Entre na aba Authorization.
+- Selecione Bearer Token.
+- Cole o token recebido no login.
 
-Também é possível testar com:
+Também é possível testar com o usuário colaborador para verificar as permissões de acesso.
 
-Usuário: colaborador
-Senha: colab123
+## 📂 7. Estrutura de pastas e camadas
 
+| Pasta | Responsabilidade |
+| --- | --- |
+| `model` | Entidades do sistema |
+| `repository` | Consultas e operações no banco |
+| `service` | Regras de negócio |
+| `controller` | Rotas e recebimento das requisições |
+| `dto` | Objetos de transferência de dados |
+| `security` | JWT e controle de permissões |
+| `exception` | Tratamento de erros |
+| `resources/static` | Interface web |
+| `relatorio-python` | Scripts de geração de relatórios |
 
-O colaborador pode consultar informações, mas não cadastrar equipamentos.
+### Caminho de uma requisição
 
-9. Pastas e camadas
-Pasta	Função	Comparação simplesmodel	Entidades	Moldes das fichas guardadas.
-repository	Consultas ao banco	Ajudante que procura e guarda fichas.
-service	Regras de negócio	Cérebro que decide se uma operação pode acontecer.
-controller	Rotas da API	Atendente que recebe os pedidos.
-dto	Dados de entrada e saída	Fichas usadas para transportar informações.
-security	JWT e permissões	Porteiro e crachás.
-exception	Tratamento de erros	Explica o que deu errado.
-resources/static	Tela web	Página exibida no navegador.
-relatorio-python	Relatório	Prepara a planilha Excel.
-Caminho normal de uma solicitação
-Tela/Postman → Controller → Service → Repository → Banco de dados
+text
 
-10. Rotas principais 📖
-Método	Rota	PermissãoPOST	/auth/login	Público
-GET	/equipamentos	Logado
-GET	/equipamentos/{id}	Logado
-POST	/equipamentos	ADMIN
-PUT	/equipamentos/{id}	ADMIN
-DELETE	/equipamentos/{id}	ADMIN
-GET	/colaboradores	ADMIN
-GET	/colaboradores/{id}	ADMIN
-POST	/colaboradores	ADMIN
-GET	/colaboradores/{id}/emprestimos	Logado
-POST	/emprestimos	ADMIN
-PUT	/emprestimos/{id}/devolucao	ADMIN
-GET	/emprestimos	Logado
-GET	/emprestimos?atrasados=true	Logado
-11. Exemplos JSON
-Equipamento
+```text
+Tela / Postman
+      |
+      v
+  Controller
+      |
+      v
+    Service
+      |
+      v
+  Repository
+      |
+      v
+ Banco de dados
+```
+
+## 📖 8. Principais rotas da API
+
+| Método | Rota | Permissão |
+| --- | --- | --- |
+| POST | `/auth/login` | Público |
+| GET | `/equipamentos` | Logado |
+| GET | `/equipamentos/{id}` | Logado |
+| POST | `/equipamentos` | ADMIN |
+| PUT | `/equipamentos/{id}` | ADMIN |
+| DELETE | `/equipamentos/{id}` | ADMIN |
+| GET | `/colaboradores` | ADMIN |
+| GET | `/colaboradores/{id}` | ADMIN |
+| POST | `/colaboradores` | ADMIN |
+| GET | `/colaboradores/{id}/emprestimos` | Logado |
+| POST | `/emprestimos` | ADMIN |
+| PUT | `/emprestimos/{id}/devolucao` | ADMIN |
+| GET | `/emprestimos` | Logado |
+| GET | `/emprestimos?atrasados=true` | Logado |
+
+## 📝 9. Exemplos de requisições JSON
+
+### Cadastro de equipamento
+
+json
+
+```json
 {
   "patrimonio": "NB-0001",
   "nome": "Notebook Dell",
   "tipo": "NOTEBOOK"
 }
+```
 
-Colaborador
+### Cadastro de colaborador
+
+json
+
+```json
 {
   "nome": "Ana Souza",
   "email": "ana@empresa.com",
   "cep": "01310100",
   "numero": "1000"
 }
+```
 
-Empréstimo
+### Registro de empréstimo
+
+json
+
+```json
 {
   "equipamentoId": 1,
   "colaboradorId": 1
 }
+```
 
-12. Relatório Python 📊
+## 📊 10. Relatório automático com Python
 
-Na pasta relatorio-python, execute:
+O projeto possui uma pasta chamada `relatorio-python`, responsável pela geração de relatórios gerenciais em Excel.
 
+### Como executar?
+
+**1\. Acesse a pasta:**
+
+bash
+
+```bash
+cd relatorio-python
+```
+
+**2\. Instale as dependências:**
+
+bash
+
+```bash
 pip install -r requirements.txt
+```
 
+**3\. Execute o programa:**
 
-Depois:
+bash
 
+```bash
 python gerar_relatorio.py
+```
 
+### Resultado
 
 O programa gera o arquivo:
 
+text
+
+```text
 relatorio_emprestimos.xlsx
+```
+
+A planilha contém duas abas:
+
+- **Atrasados:** apresenta os empréstimos que estão fora do prazo.
+- **Emprestados por tipo:** apresenta a quantidade de equipamentos emprestados por categoria.
+
+## 👥 11. Integrantes da equipe
+
+| Integrante | Responsabilidade |
+| --- | --- |
+| [Lucas](<https://github.com/Eluriomilmar>) | Tech Lead / Arquitetura |
+| [Cleber](<https://github.com/bin-ribeiro>) | Organização / Segurança / Python |
+| [Thiago](<https://github.com/thiagorosabio>) | Segurança: login e JWT / Integração com ViaCEP |
+| [Lara](<https://github.com/Lara-Karolinne>) | QA (Quality Assurance) |
+| [Filipe](<https://github.com/FilipeSantos34>) | README e roteiro da apresentação |
+
+## 🎯 12. Objetivo do projeto
+
+Desenvolver uma solução que facilite o gerenciamento de equipamentos, garantindo maior controle sobre empréstimos, devoluções e disponibilidade dos recursos.
+
+Além disso, o projeto proporciona a aplicação prática de conhecimentos em desenvolvimento Java, APIs REST, banco de dados, segurança, integração com serviços externos, testes automatizados e geração de relatórios.
 
 
-A planilha possui duas abas:
 
-Atrasados
-Emprestados por tipo
-13. Integrantes 👥
-Integrante	ResponsabilidadeLucas	Tech Lead / Arquitetura
-Cleber	Organização / Segurança / Python
-Thiago	Segurança: login e JWT / Integração com ViaCEP
-Lara	QA
-Filipe	README e roteiro da apresentação
-
-O que ajustei: corrigi a numeração, retirei repetições e códigos estranhos como bashCopy, organizei as tabelas e coloquei o conteúdo em uma ordem mais natural para alguém que abrir o README pela primeira vez. Mantive as explicações simples, porque combina bem com a proposta de documentação do seu grupo.
+Uma dica importante: substitua `URL_DO_REPOSITORIO` pelo endereço real do repositório e confira se as rotas, credenciais e configurações descritas correspondem à versão final do código.
