@@ -1,4 +1,3 @@
-
 # 📘 Sistema de Empréstimo de Equipamentos
 
 <p align="center">
@@ -18,7 +17,24 @@
 
 **Sistema desenvolvido com Java, Spring Boot, Spring Security e Python.**
 
-Sistema desenvolvido para facilitar o gerenciamento de equipamentos, colaboradores, empréstimos e devoluções, oferecendo mais organização, segurança e controle.
+Solução criada para facilitar o gerenciamento de equipamentos, colaboradores, empréstimos e devoluções, oferecendo mais organização, segurança e controle operacional.
+
+---
+
+## 📑 Sumário
+
+1. [Sobre o Projeto](#-1-sobre-o-projeto)
+2. [Funcionalidades](#-2-funcionalidades-do-sistema)
+3. [Tecnologias Utilizadas](#-3-tecnologias-utilizadas)
+4. [Arquitetura e Diagramas](#-4-arquitetura-e-diagramas-do-sistema)
+5. [Estrutura de Pastas e Camadas](#-5-estrutura-de-pastas-e-camadas)
+6. [Como Executar o Projeto](#-6-como-executar-o-projeto)
+7. [Autenticação e Segurança JWT](#-7-autenticação-e-segurança-jwt)
+8. [Principais Rotas da API](#-8-principais-rotas-da-api)
+9. [Exemplos de Requisições JSON](#-9-exemplos-de-requisições-json)
+10. [Relatório Automático com Python](#-10-relatório-automático-com-python)
+11. [Integrantes da Equipe](#-11-integrantes-da-equipe)
+12. [Objetivo do Projeto](#-12-objetivo-do-projeto)
 
 ---
 
@@ -26,276 +42,604 @@ Sistema desenvolvido para facilitar o gerenciamento de equipamentos, colaborador
 
 ### Qual problema queremos resolver?
 
-Atualmente, o controle de equipamentos pode ser realizado por meio de planilhas, o que pode gerar problemas como:
+Atualmente, o controle de equipamentos realizado por meio de planilhas manuais costuma gerar diversos gargalos operacionais, tais como:
 
-- Dificuldade para identificar quais equipamentos estão disponíveis.
-- Possibilidade de emprestar o mesmo equipamento para duas pessoas.
-- Falta de controle sobre devoluções atrasadas.
-- Dificuldade para consultar o histórico de empréstimos.
+- Dificuldade para identificar rapidamente quais equipamentos estão disponíveis.
+- Risco de emprestar o mesmo equipamento para duas pessoas simultaneamente.
+- Falta de controle rigoroso sobre devoluções atrasadas.
+- Dificuldade para consultar o histórico completo de movimentações.
 
-Nosso projeto busca solucionar esses problemas por meio de um sistema que organiza o cadastro de equipamentos e colaboradores, controla os empréstimos e facilita o acompanhamento das devoluções.
+Este projeto soluciona esses problemas centralizando o cadastro de equipamentos e colaboradores, automatizando regras de disponibilidade e facilitando o acompanhamento de devoluções e relatórios.
+
+---
 
 ## 🚀 2. Funcionalidades do sistema
 
-- Cadastro de equipamentos com número de patrimônio único.
-- Cadastro de colaboradores com preenchimento de endereço via ViaCEP.
-- Registro de empréstimos com prazo padrão de 14 dias.
-- Bloqueio de empréstimos de equipamentos que já estejam emprestados.
-- Registro de devoluções e liberação automática dos equipamentos.
-- Consulta de empréstimos e identificação de atrasos.
-- Autenticação com JWT.
-- Controle de acesso por perfis ADMIN e COLABORADOR.
-- Geração de relatórios em Excel com:
-  - Empréstimos atrasados.
-  - Quantidade de equipamentos emprestados por tipo.
+- **Gestão de Equipamentos:** Cadastro com número de patrimônio único, edição, listagem com filtros e remoção.
+- **Gestão de Colaboradores:** Cadastro integrado com preenchimento automático de endereço via **ViaCEP**.
+- **Controle de Empréstimos:** Registro de empréstimos com prazo padrão de 14 dias e bloqueio automático para itens já emprestados.
+- **Devoluções:** Registro de devolução com liberação imediata do equipamento no estoque.
+- **Monitoramento de Atrasos:** Consulta dedicada para identificação de empréstimos com prazo vencido.
+- **Segurança e Perfis:** Autenticação stateless via JWT com controle de acesso baseado em perfis (`ADMIN` e `COLABORADOR`).
+- **Relatórios Gerenciais:** Exportação automatizada em Excel (`.xlsx`) via script Python contendo abas de empréstimos atrasados e quantitativo por tipo de equipamento.
+
+---
 
 ## 🛠️ 3. Tecnologias utilizadas
 
-| Tecnologia | Finalidade |
+| Camada / Área | Tecnologia | Finalidade |
+| --- | --- | --- |
+| **Back-end** | Java 25 & Spring Boot 4.1.2 | Base da aplicação e injeção de dependências |
+| **Build** | Maven | Gerenciamento de dependências e compilação |
+| **Web / API** | Spring Web & Bean Validation | Rotas REST e validação de entrada |
+| **Persistência** | Spring Data JPA, Hibernate & H2 | Mapeamento objeto-relacional e banco de dados local |
+| **Segurança** | Spring Security, JJWT 0.12.6 & BCrypt | Autenticação JWT, criptografia e controle de rotas |
+| **Integrações** | RestClient & ViaCEP | Consumo de API externa para consulta de CEP |
+| **Documentação** | Springdoc OpenAPI / Swagger UI | Documentação interativa e testes dos endpoints |
+| **Testes** | JUnit 5, Spring Boot Test & Postman | Testes automatizados, integração e validação de rotas |
+| **Front-end** | HTML5 & JavaScript (`app.js`) | Interface web e consumo da API com `sessionStorage` |
+| **Relatórios** | Python 3, Requests, Pandas & OpenPyXL | Extração de dados da API e geração de planilhas Excel |
+
+---
+
+## 🏗️ 4. Arquitetura e Diagramas do Sistema
+
+O projeto adota uma **arquitetura em camadas**, isolando regras de negócio na camada `Service`, expondo contratos REST na camada `Controller` e persistindo dados via `Repository`.
+
+### Visão Geral e Integrações Externas
+
+```text
+   USUÁRIO ──► INTERFACE WEB (app.js) ──► CONTROLLER ──► SERVICE ──► REPOSITORY ──► BANCO H2
+                                                            │
+                                                            └──► ViaCEP (Consulta de Endereço)
+
+   API REST ──► SCRIPT PYTHON (Pandas / OpenPyXL) ──► Relatório Excel (.xlsx)
+```
+
+### 4.1. Fluxo Geral das Requisições (Spring Security & Rotas)
+
+O diagrama abaixo representa a cadeia de filtros do Spring Security, validação do token JWT, autorização por perfil e o roteamento para os serviços e integrações:
+
+```mermaid
+flowchart TD
+    A["Navegador / app.js<br/>Requisição HTTP"] --> B["Spring Boot"]
+    B --> C["SecurityFilterChain<br/>SecurityConfig"]
+    C --> D["FiltroJwt"]
+    D --> E{"Cabeçalho Authorization<br/>Bearer presente?"}
+    E -- "Sim" --> F["TokenService.ler(token)<br/>validar assinatura e expiração"]
+    F --> G{"JWT válido?"}
+    G -- "Não" --> H["HTTP 401<br/>Token inválido ou expirado"]
+    G -- "Sim" --> I["SecurityContextHolder<br/>usuário + ROLE"]
+    E -- "Não" --> J["Segue sem autenticação"]
+    I --> K["Regras de autorização<br/>permitAll / authenticated / hasRole"]
+    J --> K
+    K --> L{"Acesso permitido?"}
+    L -- "Não autenticado" --> M["HTTP 401<br/>Autenticação necessária"]
+    L -- "Sem permissão" --> N["HTTP 403<br/>Acesso negado"]
+    L -- "Sim" --> O{"Rota solicitada"}
+
+    O -- "POST /auth/login" --> P["AuthController.login"]
+    P --> Q["AuthenticationManager"]
+    Q --> R["UserDetailsService<br/>usuários em memória"]
+    R --> S["BCryptPasswordEncoder<br/>confere senha"]
+    S --> T{"Credenciais válidas?"}
+    T -- "Não" --> U["TratadorDeErros<br/>HTTP 401 + JSON"]
+    T -- "Sim" --> V["TokenService.gerar(usuario, perfil)"]
+    V --> W["TokenResposta<br/>token, perfil, usuario"]
+    W --> X["HTTP 200 + JSON JWT"]
+
+    O -- "POST /colaboradores" --> Y["ColaboradorController.cadastrar"]
+    Y --> Z["ColaboradorService.cadastrar"]
+    Z --> AA["ColaboradorRepository<br/>verifica e-mail duplicado"]
+    AA --> AB["ViaCepService.buscar(CEP)"]
+    AB --> AC["Serviço externo ViaCEP"]
+    AC --> AD["ViaCepResposta<br/>logradouro, bairro, localidade, UF"]
+    AD --> AE["Colaborador montado<br/>com endereço + número"]
+    AE --> AF["ColaboradorRepository.save"]
+    AF --> AG[("Banco de dados")]
+    AG --> AH["Resposta HTTP 201 + JSON Colaborador"]
+
+    O -- "Rotas de equipamentos" --> AI["EquipamentoController"]
+    AI --> AJ["EquipamentoService"]
+    AJ --> AK["EquipamentoRepository"]
+    AK --> AG
+    AG --> AL["HTTP + JSON Equipamento(s)"]
+
+    O -- "Rotas de empréstimos" --> AM["EmprestimoController"]
+    AM --> AN["EmprestimoService"]
+    AN --> AO["EmprestimoRepository / EquipamentoRepository / ColaboradorService"]
+    AO --> AG
+    AG --> AP["HTTP + JSON Empréstimo(s)"]
+
+    Z -. "Exceções" .-> AQ["TratadorDeErros"]
+    AJ -. "Exceções" .-> AQ
+    AN -. "Exceções" .-> AQ
+    AQ --> AR["Resposta de erro JSON<br/>400 / 404 / 409 / 502"]
+
+    X --> AS["app.js processa resposta<br/>guarda JWT no sessionStorage"]
+    AH --> AT["app.js atualiza interface"]
+    AL --> AT
+    AP --> AT
+```
+
+### 4.2. Diagrama de Sequência: Registrar Empréstimo (`POST /emprestimos`)
+
+Detalhamento completo desde a interação do usuário no navegador até a persistência transacional no banco H2, contemplando todos os cenários de erro (`400`, `401`, `403`, `404` e `409`):
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as Usuário
+    participant JS as app.js<br/>(navegador)
+    participant FJ as FiltroJwt
+    participant TS as TokenService
+    participant AZ as AuthorizationFilter<br/>(regras do SecurityConfig)
+    participant DS as DispatcherServlet<br/>(Jackson + @Valid)
+    participant EC as EmprestimoController
+    participant ES as EmprestimoService
+    participant QS as EquipamentoService
+    participant CS as ColaboradorService
+    participant RP as Repositories<br/>(Equipamento, Colaborador, Emprestimo)
+    participant DB as H2<br/>(dados/emprestimos)
+    participant TE as TratadorDeErros
+
+    U->>JS: Escolhe equipamento e colaborador e clica em Registrar
+    JS->>JS: registrarEmprestimo() monta {equipamentoId, colaboradorId}
+    JS->>JS: chamarApi() lê o JWT do sessionStorage e adiciona Authorization: Bearer token
+    JS->>FJ: fetch POST /emprestimos (Content-Type: application/json)
+
+    alt sem cabeçalho Bearer
+        FJ->>AZ: filterChain.doFilter() sem autenticação
+        AZ-->>JS: 401 {"message":"Autenticação necessária"} (authenticationEntryPoint)
+    else com cabeçalho Bearer
+        FJ->>TS: ler(token)
+        alt assinatura inválida, malformado ou expirado
+            TS-->>FJ: JwtException
+            FJ-->>JS: 401 {"message":"Token inválido ou expirado"}
+        else token válido
+            TS-->>FJ: claims (subject = usuário, perfil)
+            FJ->>FJ: SecurityContextHolder recebe ROLE_ + perfil
+            FJ->>AZ: filterChain.doFilter()
+            alt perfil COLABORADOR (POST /emprestimos/** exige hasRole ADMIN)
+                AZ-->>JS: 403 {"message":"Você não tem permissão para esta operação"} (accessDeniedHandler)
+            else perfil ADMIN
+                AZ->>DS: requisição autorizada
+                DS->>DS: Jackson converte o JSON em EmprestimoRequest e @Valid confere @NotNull
+                alt JSON inválido ou id nulo
+                    DS->>TE: HttpMessageNotReadableException ou MethodArgumentNotValidException
+                    TE-->>JS: 400 {"message": "..."}
+                else dados válidos
+                    DS->>EC: emprestar(dados)
+                    EC->>ES: emprestar(dados)
+                    Note over ES,DB: @Transactional abre a transação (os buscar() readOnly entram nela)
+                    ES->>QS: buscar(equipamentoId)
+                    QS->>RP: equipamentoRepository.findById(id)
+                    RP->>DB: SELECT equipamento WHERE id = ?
+                    alt equipamento não existe
+                        QS->>TE: NaoEncontradoException (rollback)
+                        TE-->>JS: 404 {"message":"Equipamento não encontrado"}
+                    else equipamento encontrado
+                        QS-->>ES: Equipamento
+                        ES->>CS: buscar(colaboradorId)
+                        CS->>RP: colaboradorRepository.findById(id)
+                        RP->>DB: SELECT colaborador WHERE id = ?
+                        alt colaborador não existe
+                            CS->>TE: NaoEncontradoException (rollback)
+                            TE-->>JS: 404 {"message":"Colaborador não encontrado"}
+                        else colaborador encontrado
+                            CS-->>ES: Colaborador
+                            alt equipamento.isDisponivel() == false
+                                ES->>TE: ConflitoException (rollback)
+                                TE-->>JS: 409 {"message":"Equipamento indisponível"}
+                            else equipamento disponível
+                                ES->>ES: setDisponivel(false), dataEmprestimo = hoje, dataPrevistaDevolucao = hoje + 14
+                                ES->>RP: emprestimoRepository.save(emprestimo)
+                                RP->>DB: INSERT INTO emprestimo
+                                DB-->>RP: id gerado (IDENTITY)
+                                RP-->>ES: Emprestimo salvo
+                                ES->>DB: commit, UPDATE equipamento SET disponivel = false (dirty checking)
+                                ES-->>EC: Emprestimo
+                                EC-->>DS: Emprestimo (@ResponseStatus CREATED)
+                                DS-->>JS: 201 Created + JSON do empréstimo (Jackson)
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    Note over JS: chamarApi() trata a resposta
+    alt status 401
+        JS->>JS: encerrarSessao() limpa o sessionStorage e mostra a tela de login
+        JS-->>U: "Sua sessão expirou ou não é válida. Entre novamente."
+    else status 400, 403, 404 ou 409
+        JS->>JS: lê dados.message e lança Error
+        JS-->>U: mostrarMensagem(message, 'error')
+    else status 201
+        JS->>JS: formulario.reset()
+        JS-->>U: "Empréstimo registrado com sucesso."
+        JS->>FJ: carregarDadosEmprestimos() e carregarPainel() fazem GETs que seguem o mesmo caminho
+    end
+```
+
+### 4.3. Diagrama de Classes (UML)
+
+Estrutura completa de controllers, services, repositories, entidades, DTOs, configuração de segurança e tratamento global de exceções:
+
+```mermaid
+classDiagram
+direction LR
+
+class EmprestimosApplication {
+  +main(String[] args)
+}
+
+class AuthController {
+  -AuthenticationManager authenticationManager
+  -TokenService tokenService
+  +login(LoginRequest) TokenResposta
+}
+class ColaboradorController {
+  -ColaboradorService colaboradorService
+  -EmprestimoService emprestimoService
+  +listar() List~Colaborador~
+  +listarEmprestimos(Long) List~Emprestimo~
+  +buscar(Long) Colaborador
+  +cadastrar(ColaboradorRequest) Colaborador
+}
+class EquipamentoController {
+  -EquipamentoService equipamentoService
+  +listar(TipoEquipamento, Boolean) List~Equipamento~
+  +buscar(Long) Equipamento
+  +cadastrar(EquipamentoRequest) Equipamento
+  +atualizar(Long, AtualizarEquipamentoRequest) Equipamento
+  +remover(Long) ResponseEntity
+}
+class EmprestimoController {
+  -EmprestimoService emprestimoService
+  +listar(Boolean) List~Emprestimo~
+  +emprestar(EmprestimoRequest) Emprestimo
+  +devolver(Long) Emprestimo
+}
+
+class ColaboradorService {
+  -ColaboradorRepository colaboradorRepository
+  -ViaCepService viaCepService
+  +listar() List~Colaborador~
+  +buscar(Long) Colaborador
+  +cadastrar(ColaboradorRequest) Colaborador
+}
+class EquipamentoService {
+  -EquipamentoRepository equipamentoRepository
+  -EmprestimoRepository emprestimoRepository
+  +listar(TipoEquipamento, Boolean) List~Equipamento~
+  +buscar(Long) Equipamento
+  +cadastrar(EquipamentoRequest) Equipamento
+  +atualizar(Long, AtualizarEquipamentoRequest) Equipamento
+  +remover(Long) void
+}
+class EmprestimoService {
+  -EmprestimoRepository emprestimoRepository
+  -EquipamentoRepository equipamentoRepository
+  -ColaboradorService colaboradorService
+  +listar(Boolean) List~Emprestimo~
+  +buscar(Long) Emprestimo
+  +listarDoColaborador(Long) List~Emprestimo~
+  +emprestar(EmprestimoRequest) Emprestimo
+  +devolver(Long) Emprestimo
+}
+class ViaCepService {
+  -RestClient restClient
+  +buscar(String) ViaCepResposta
+}
+
+class ColaboradorRepository {
+  <<interface>>
+  +existsByEmail(String) boolean
+}
+class EquipamentoRepository {
+  <<interface>>
+  +findByTipo(TipoEquipamento) List~Equipamento~
+  +findByDisponivel(Boolean) List~Equipamento~
+  +findByTipoAndDisponivel(TipoEquipamento, Boolean) List~Equipamento~
+  +findByIdForUpdate(Long) Optional~Equipamento~
+}
+class EmprestimoRepository {
+  <<interface>>
+  +existsByEquipamentoId(Long) boolean
+  +findByColaboradorId(Long) List~Emprestimo~
+  +findByDataDevolucaoIsNullAndDataPrevistaDevolucaoBefore(LocalDate) List~Emprestimo~
+}
+
+class Colaborador {
+  -Long id
+  -String nome
+  -String email
+  -String cep
+  -String numero
+  -String logradouro
+  -String bairro
+  -String cidade
+  -String uf
+}
+class Equipamento {
+  -Long id
+  -String patrimonio
+  -String nome
+  -TipoEquipamento tipo
+  -boolean disponivel
+}
+class Emprestimo {
+  -Long id
+  -LocalDate dataEmprestimo
+  -LocalDate dataPrevistaDevolucao
+  -LocalDate dataDevolucao
+  +isAtrasado() boolean
+}
+class TipoEquipamento {
+  <<enumeration>>
+  NOTEBOOK
+  MONITOR
+  HEADSET
+  TECLADO
+  MOUSE
+  OUTRO
+}
+
+class LoginRequest {
+  <<record>>
+  +String usuario
+  +String senha
+}
+class TokenResposta {
+  <<record>>
+  +String token
+  +String perfil
+  +String usuario
+}
+class ColaboradorRequest {
+  <<record>>
+  +String nome
+  +String email
+  +String cep
+  +String numero
+}
+class ViaCepResposta {
+  <<record>>
+  +String logradouro
+  +String bairro
+  +String localidade
+  +String uf
+  +Boolean erro
+}
+class EquipamentoRequest {
+  <<record>>
+  +String patrimonio
+  +String nome
+  +TipoEquipamento tipo
+}
+class AtualizarEquipamentoRequest {
+  <<record>>
+  +String nome
+  +TipoEquipamento tipo
+}
+class EmprestimoRequest {
+  <<record>>
+  +Long equipamentoId
+  +Long colaboradorId
+}
+
+class SecurityConfig {
+  +passwordEncoder() PasswordEncoder
+  +userDetailsService(...) UserDetailsService
+  +authenticationManager(...) AuthenticationManager
+  +filterChain(...) SecurityFilterChain
+}
+class FiltroJwt {
+  -TokenService tokenService
+  +doFilterInternal(request, response, chain) void
+}
+class TokenService {
+  -SecretKey chave
+  -long validadeMs
+  +gerar(String, String) String
+  +ler(String) Claims
+}
+class SwaggerConfig {
+  +documentacaoApi() OpenAPI
+}
+class TratadorDeErros {
+  +naoEncontrado(...) ErroResposta
+  +conflito(...) ErroResposta
+  +validacao(...) ErroResposta
+  +cepNaoEncontrado(...) ErroResposta
+  +loginInvalido(...) ErroResposta
+  +integracao(...) ErroResposta
+  +tipoInvalido(...) ErroResposta
+  +jsonInvalido(...) ErroResposta
+  +integridade(...) ErroResposta
+}
+class ErroResposta {
+  <<record>>
+  +String message
+}
+class CepNaoEncontradoException
+class ConflitoException
+class IntegracaoException
+class NaoEncontradoException
+
+EmprestimosApplication ..> SecurityConfig : inicia contexto
+AuthController --> TokenService : gera JWT
+AuthController ..> LoginRequest : recebe
+AuthController ..> TokenResposta : devolve
+SecurityConfig --> FiltroJwt : registra filtro
+SecurityConfig --> TokenService : injeta
+FiltroJwt --> TokenService : valida JWT
+ColaboradorController --> ColaboradorService
+ColaboradorController --> EmprestimoService
+EquipamentoController --> EquipamentoService
+EmprestimoController --> EmprestimoService
+ColaboradorService --> ColaboradorRepository
+ColaboradorService --> ViaCepService
+ColaboradorService ..> ColaboradorRequest
+ColaboradorService ..> ViaCepResposta
+ViaCepService ..> ViaCepResposta : converte resposta externa
+EquipamentoService --> EquipamentoRepository
+EquipamentoService --> EmprestimoRepository
+EmprestimoService --> EmprestimoRepository
+EmprestimoService --> EquipamentoRepository
+EmprestimoService --> ColaboradorService
+EquipamentoRepository ..> Equipamento
+ColaboradorRepository ..> Colaborador
+EmprestimoRepository ..> Emprestimo
+
+Emprestimo "0..*" --> "1" Colaborador : pertence a
+Emprestimo "0..*" --> "1" Equipamento : utiliza
+Equipamento --> TipoEquipamento : tipo
+EquipamentoService ..> EquipamentoRequest
+EquipamentoService ..> AtualizarEquipamentoRequest
+EmprestimoService ..> EmprestimoRequest
+
+TratadorDeErros ..> ErroResposta : monta resposta
+TratadorDeErros ..> CepNaoEncontradoException
+TratadorDeErros ..> ConflitoException
+TratadorDeErros ..> IntegracaoException
+TratadorDeErros ..> NaoEncontradoException
+SwaggerConfig ..> TokenService : documenta esquema Bearer JWT
+```
+
+#### Notas Técnicas da Arquitetura
+- **Segurança & Sessão:** `SecurityConfig` libera `/auth/login` e recursos estáticos; `FiltroJwt` valida o token Bearer antes dos controllers. Os usuários de demonstração são gerenciados em memória pelo `InMemoryUserDetailsManager`.
+- **Relacionamentos JPA:** `Emprestimo` mantém vínculo `@ManyToOne` com `Colaborador` e `Equipamento`, permitindo rastrear o histórico completo de uso de cada ativo.
+- **Camada Front-end:** `app.js` gerencia o estado da aplicação no navegador, armazenando o JWT em `sessionStorage` e atualizando a interface dinamicamente.
+
+---
+
+## 📂 5. Estrutura de pastas e camadas
+
+| Pasta / Diretório | Responsabilidade |
 | --- | --- |
-| Java 25 | Linguagem principal do sistema |
-| Spring Boot 4.1.2 | Estrutura e inicialização da aplicação |
-| Maven | Gerenciamento de dependências e compilação |
-| Spring Web | Criação das rotas HTTP da API |
-| Spring Data JPA | Comunicação com o banco de dados |
-| Hibernate | Mapeamento objeto-relacional |
-| H2 Database | Banco de dados local |
-| Spring Security | Segurança e controle de permissões |
-| JWT | Autenticação por token |
-| JJWT 0.12.6 | Criação e validação de tokens JWT |
-| BCrypt | Criptografia das senhas |
-| Bean Validation | Validação dos dados recebidos |
-| RestClient | Comunicação com APIs externas |
-| ViaCEP | Consulta de endereços pelo CEP |
-| Springdoc OpenAPI / Swagger UI | Documentação e testes da API |
-| JUnit 5 | Testes automatizados |
-| Spring Boot Test | Testes de integração |
-| Spring Security Test | Testes de segurança |
-| HTML | Estrutura da interface web |
-| JavaScript | Comunicação entre tela e API |
-| Python 3 | Geração de relatórios |
-| Requests | Requisições HTTP em Python |
-| Pandas | Organização e análise dos dados |
-| OpenPyXL | Geração de planilhas Excel |
-| Postman | Testes das rotas da API |
-| VS Code / NetBeans / IntelliJ | Ambientes de desenvolvimento |
+| `model` | Entidades JPA e enums do domínio (`Colaborador`, `Equipamento`, `Emprestimo`, `TipoEquipamento`) |
+| `repository` | Interfaces Spring Data JPA para consultas e persistência |
+| `service` | Regras de negócio, controle transacional e integração com ViaCEP |
+| `controller` | Exposição dos endpoints REST e tratamento de requisições HTTP |
+| `dto` | Records para transferência e validação de dados (`Request` e `Resposta`) |
+| `security` | Configuração do Spring Security, geração e validação de tokens JWT |
+| `exception` | Exceções customizadas e handler global (`TratadorDeErros`) |
+| `resources/static` | Interface web (HTML, CSS e `app.js`) |
+| `relatorio-python` | Scripts Python responsáveis pela extração e geração de relatórios Excel |
 
-## 🏗️ 4. Arquitetura do sistema
+---
 
-O projeto utiliza uma arquitetura em camadas, separando as responsabilidades para facilitar a manutenção e organização do código.
-
-### Fluxo principal
-
-text
-
-```text
-        USUÁRIO
-           |
-           v
-       INTERFACE
-           |
-           v
-       CONTROLLER
-           |
-           v
-        SERVICE
-           |
-           v
-       REPOSITORY
-           |
-           v
-       BANCO H2
-```
-
-### Integrações externas
-
-text
-
-```text
-Sistema ---> ViaCEP ---> Consulta de endereço
-
-Sistema ---> API ---> Python ---> Relatório Excel
-```
-
-As regras de negócio ficam concentradas na camada Service, enquanto os Controllers recebem as requisições e os Repositories realizam as operações no banco de dados.
-
-## 💻 5. Como executar o projeto
+## 💻 6. Como executar o projeto
 
 ### Pré-requisitos
 
-- Java JDK 17 ou superior.
-- Maven.
-- VS Code, NetBeans ou IntelliJ IDEA.
-- Postman (opcional, para testar a API).
-- Python 3 (para gerar os relatórios).
+- **Java JDK 17** ou superior (projeto configurado com Java 25).
+- **Maven** instalado ou uso do wrapper `./mvnw`.
+- **Python 3** (opcional, apenas para execução dos relatórios em Excel).
+- IDE de sua preferência (IntelliJ IDEA, VS Code ou NetBeans) e **Postman** (opcional).
 
 ### Passo a passo
 
-**1\. Clone o repositório**
+1. **Clone o repositório:**
+   ```bash
+   git clone URL_DO_REPOSITORIO
+   ```
 
-bash
+2. **Acesse o diretório do projeto:**
+   ```bash
+   cd nome-do-projeto
+   ```
 
-```bash
-git clone URL_DO_REPOSITORIO
-```
-
-**2\. Acesse a pasta do projeto**
-
-bash
-
-```bash
-cd nome-do-projeto
-```
-
-**3\. Abra o projeto na IDE**
-
-Importe o arquivo `pom.xml` como um projeto Maven.
-
-**4\. Execute a aplicação**
-
-No terminal, dentro da pasta onde está o `pom.xml`, execute:
-
-bash
-
-```bash
-mvn spring-boot:run
-```
+3. **Compile e execute a aplicação via Maven:**
+   ```bash
+   mvn spring-boot:run
+   ```
+   *(Caso prefira usar uma IDE, importe o arquivo `pom.xml` como um projeto Maven e execute a classe `EmprestimosApplication`.)*
 
 ### Endereços da aplicação
 
-| Serviço | Endereço |
+| Serviço | URL de Acesso |
 | --- | --- |
-| Sistema Web | [http://localhost:8080](<http://localhost:8080>) |
-| Swagger UI | [http://localhost:8080/swagger-ui/index.html](<http://localhost:8080/swagger-ui/index.html>) |
-| Console H2 | [http://localhost:8080/h2-console](<http://localhost:8080/h2-console>) |
+| **Sistema Web** | `http://localhost:8080` |
+| **Swagger UI** | `http://localhost:8080/swagger-ui/index.html` |
+| **Console H2** | `http://localhost:8080/h2-console` |
 
-### Configuração do banco H2
+### Configuração do Banco de Dados H2
 
-| Configuração | Valor |
+| Parâmetro | Valor |
 | --- | --- |
-| JDBC URL | `jdbc:h2:file:./dados/emprestimos` |
-| Usuário | `sa` |
-| Senha | (vazia) |
+| **JDBC URL** | `jdbc:h2:file:./dados/emprestimos` |
+| **Usuário** | `sa` |
+| **Senha** | *(deixar em branco)* |
 
-## 🔐 6. Autenticação e segurança JWT
+---
 
-O sistema utiliza JWT (JSON Web Token) para autenticar usuários e proteger as rotas da API.
+## 🔐 7. Autenticação e segurança JWT
+
+O sistema utiliza **JWT (JSON Web Token)** para autenticar usuários e controlar o acesso às rotas protegidas.
 
 ### Perfis de acesso
 
-- **ADMIN:** possui permissões administrativas, como cadastrar equipamentos, colaboradores e registrar empréstimos e devoluções.
-- **COLABORADOR:** possui acesso às funcionalidades de consulta permitidas pelo sistema.
+- **`ADMIN`:** Permissão total para cadastrar equipamentos, registrar colaboradores, efetuar empréstimos e dar baixa em devoluções.
+- **`COLABORADOR`:** Permissão de leitura para consultar equipamentos, empréstimos e histórico vinculado.
 
 ### Usuários de demonstração
 
 | Perfil | Usuário | Senha |
 | --- | --- | --- |
-| ADMIN | `admin` | `admin123` |
-| COLABORADOR | `colaborador` | `colab123` |
+| `ADMIN` | `admin` | `admin123` |
+| `COLABORADOR` | `colaborador` | `colab123` |
 
-> ⚠️ Atenção: essas credenciais são destinadas exclusivamente ao ambiente local de demonstração. Não utilize essas senhas em ambientes publicados na internet.
+> ⚠️ **Atenção:** Essas credenciais são configuradas em memória exclusivamente para testes e demonstração local. Não utilize essas senhas em ambientes de produção.
 
-### Como funciona o JWT?
+### Analogia de funcionamento
 
-Imagine que a API seja uma escola com salas protegidas:
+- **`AuthController`:** Recepção que valida usuário e senha.
+- **`TokenService`:** Emissor do crachá digital temporário (token JWT).
+- **`FiltroJwt`:** Segurança que inspeciona o crachá em cada requisição.
+- **`SecurityConfig`:** Mapa de permissões que define quais salas são públicas ou restritas a administradores.
 
-- **AuthController:** é a recepção, que recebe o usuário e a senha.
-- **TokenService:** é a máquina que cria os crachás digitais (tokens JWT).
-- **FiltroJwt:** é o segurança que verifica o crachá em cada requisição protegida.
-- **SecurityConfig:** define quais áreas são públicas e quais exigem autenticação ou perfil ADMIN.
+### Como testar o login via Postman
 
-O JWT funciona como um crachá digital temporário. Ele não é a senha do usuário, mas uma autorização que permite acessar determinadas funcionalidades enquanto estiver válido.
+1. Envie uma requisição `POST` para `http://localhost:8080/auth/login` com o corpo (`raw` → `JSON`):
+   ```json
+   {
+     "usuario": "admin",
+     "senha": "admin123"
+   }
+   ```
+2. Copie o valor do campo `token` retornado na resposta.
+3. Nas próximas requisições, acesse a aba **Authorization**, selecione **Bearer Token** e cole o token gerado.
 
-### Como testar o login no Postman?
-
-**1\. Envie uma requisição POST:**
-
-http
-
-```http
-POST http://localhost:8080/auth/login
-```
-
-**2\. No Body, selecione raw → JSON:**
-
-json
-
-```json
-{
-  "usuario": "admin",
-  "senha": "admin123"
-}
-```
-
-**3\. Copie o campo****`token`****retornado pela API.**
-
-**4\. Para acessar as rotas protegidas:**
-
-- Entre na aba Authorization.
-- Selecione Bearer Token.
-- Cole o token recebido no login.
-
-Também é possível testar com o usuário colaborador para verificar as permissões de acesso.
-
-## 📂 7. Estrutura de pastas e camadas
-
-| Pasta | Responsabilidade |
-| --- | --- |
-| `model` | Entidades do sistema |
-| `repository` | Consultas e operações no banco |
-| `service` | Regras de negócio |
-| `controller` | Rotas e recebimento das requisições |
-| `dto` | Objetos de transferência de dados |
-| `security` | JWT e controle de permissões |
-| `exception` | Tratamento de erros |
-| `resources/static` | Interface web |
-| `relatorio-python` | Scripts de geração de relatórios |
-
-### Caminho de uma requisição
-
-text
-
-```text
-Tela / Postman
-      |
-      v
-  Controller
-      |
-      v
-    Service
-      |
-      v
-  Repository
-      |
-      v
- Banco de dados
-```
+---
 
 ## 📖 8. Principais rotas da API
 
-| Método | Rota | Permissão |
-| --- | --- | --- |
-| POST | `/auth/login` | Público |
-| GET | `/equipamentos` | Logado |
-| GET | `/equipamentos/{id}` | Logado |
-| POST | `/equipamentos` | ADMIN |
-| PUT | `/equipamentos/{id}` | ADMIN |
-| DELETE | `/equipamentos/{id}` | ADMIN |
-| GET | `/colaboradores` | ADMIN |
-| GET | `/colaboradores/{id}` | ADMIN |
-| POST | `/colaboradores` | ADMIN |
-| GET | `/colaboradores/{id}/emprestimos` | Logado |
-| POST | `/emprestimos` | ADMIN |
-| PUT | `/emprestimos/{id}/devolucao` | ADMIN |
-| GET | `/emprestimos` | Logado |
-| GET | `/emprestimos?atrasados=true` | Logado |
+| Método | Rota | Descrição | Permissão |
+| --- | --- | --- | --- |
+| `POST` | `/auth/login` | Autentica usuário e retorna token JWT | Público |
+| `GET` | `/equipamentos` | Lista equipamentos (aceita filtros) | Logado |
+| `GET` | `/equipamentos/{id}` | Busca equipamento por ID | Logado |
+| `POST` | `/equipamentos` | Cadastra novo equipamento | `ADMIN` |
+| `PUT` | `/equipamentos/{id}` | Atualiza dados de um equipamento | `ADMIN` |
+| `DELETE` | `/equipamentos/{id}` | Remove um equipamento | `ADMIN` |
+| `GET` | `/colaboradores` | Lista todos os colaboradores | `ADMIN` |
+| `GET` | `/colaboradores/{id}` | Busca colaborador por ID | `ADMIN` |
+| `POST` | `/colaboradores` | Cadastra colaborador (consulta ViaCEP) | `ADMIN` |
+| `GET` | `/colaboradores/{id}/emprestimos` | Lista empréstimos de um colaborador | Logado |
+| `POST` | `/emprestimos` | Registra um novo empréstimo | `ADMIN` |
+| `PUT` | `/emprestimos/{id}/devolucao` | Registra devolução de equipamento | `ADMIN` |
+| `GET` | `/emprestimos` | Lista todos os empréstimos | Logado |
+| `GET` | `/emprestimos?atrasados=true` | Filtra apenas empréstimos atrasados | Logado |
+
+---
 
 ## 📝 9. Exemplos de requisições JSON
 
-### Cadastro de equipamento
-
-json
-
+### Cadastro de Equipamento (`POST /equipamentos`)
 ```json
 {
   "patrimonio": "NB-0001",
@@ -304,10 +648,7 @@ json
 }
 ```
 
-### Cadastro de colaborador
-
-json
-
+### Cadastro de Colaborador (`POST /colaboradores`)
 ```json
 {
   "nome": "Ana Souza",
@@ -317,10 +658,7 @@ json
 }
 ```
 
-### Registro de empréstimo
-
-json
-
+### Registro de Empréstimo (`POST /emprestimos`)
 ```json
 {
   "equipamentoId": 1,
@@ -328,67 +666,49 @@ json
 }
 ```
 
+---
+
 ## 📊 10. Relatório automático com Python
 
-O projeto possui uma pasta chamada `relatorio-python`, responsável pela geração de relatórios gerenciais em Excel.
+A pasta `relatorio-python` contém a automação responsável por consumir os endpoints da API e consolidar indicadores gerenciais em Excel.
 
-### Como executar?
+### Como executar
 
-**1\. Acesse a pasta:**
+1. Acesse a pasta do script:
+   ```bash
+   cd relatorio-python
+   ```
 
-bash
+2. Instale as dependências necessárias:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-```bash
-cd relatorio-python
-```
+3. Execute o gerador de relatórios (com a API Java em execução):
+   ```bash
+   python gerar_relatorio.py
+   ```
 
-**2\. Instale as dependências:**
+### Arquivo gerado
 
-bash
-
-```bash
-pip install -r requirements.txt
-```
-
-**3\. Execute o programa:**
-
-bash
-
-```bash
-python gerar_relatorio.py
-```
-
-### Resultado
-
-O programa gera o arquivo:
-
-text
-
-```text
-relatorio_emprestimos.xlsx
-```
-
-A planilha contém duas abas:
-
-- **Atrasados:** apresenta os empréstimos que estão fora do prazo.
-- **Emprestados por tipo:** apresenta a quantidade de equipamentos emprestados por categoria.
-
-## 👥 11. Integrantes da equipe
-
-
-| Integrante | Responsabilidade | GitHub |
-|---|---|---|
-| Lucas | Tech Lead / Arquitetura | [![GitHub](https://img.shields.io/badge/GitHub-Eluriomilmar-181717?logo=github)](https://github.com/Eluriomilmar) |
-| Cleber | Organização / Segurança / Python | [![GitHub](https://img.shields.io/badge/GitHub-bin--ribeiro-181717?logo=github)](https://github.com/bin-ribeiro) |
-| Thiago | Segurança JWT / ViaCEP | [![GitHub](https://img.shields.io/badge/GitHub-thiagorosabio-181717?logo=github)](https://github.com/thiagorosabio) |
-| Lara | QA | [![GitHub](https://img.shields.io/badge/GitHub-Lara--Karolinne-181717?logo=github)](https://github.com/Lara-Karolinne) |
-| Filipe | README / Apresentação | [![GitHub](https://img.shields.io/badge/GitHub-FilipeSantos34-181717?logo=github)](https://github.com/FilipeSantos34) |
-## 🎯 12. Objetivo do projeto
-
-Desenvolver uma solução que facilite o gerenciamento de equipamentos, garantindo maior controle sobre empréstimos, devoluções e disponibilidade dos recursos.
-
-Além disso, o projeto proporciona a aplicação prática de conhecimentos em desenvolvimento Java, APIs REST, banco de dados, segurança, integração com serviços externos, testes automatizados e geração de relatórios.
+O script produzirá o arquivo `relatorio_emprestimos.xlsx` estruturado em duas abas:
+- **Atrasados:** Relação detalhada de todos os empréstimos com data prevista expirada.
+- **Emprestados por tipo:** Consolidado quantitativo de equipamentos em uso agrupados por categoria.
 
 ---
 
+## 👥 11. Integrantes da equipe
 
+| Integrante | Responsabilidade | GitHub |
+| --- | --- | --- |
+| **Lucas** | Tech Lead / Arquitetura | [![GitHub](https://img.shields.io/badge/GitHub-Eluriomilmar-181717?logo=github)](https://github.com/Eluriomilmar) |
+| **Cleber** | Organização / Segurança / Python | [![GitHub](https://img.shields.io/badge/GitHub-bin--ribeiro-181717?logo=github)](https://github.com/bin-ribeiro) |
+| **Thiago** | Segurança JWT / ViaCEP | [![GitHub](https://img.shields.io/badge/GitHub-thiagorosabio-181717?logo=github)](https://github.com/thiagorosabio) |
+| **Lara** | QA | [![GitHub](https://img.shields.io/badge/GitHub-Lara--Karolinne-181717?logo=github)](https://github.com/Lara-Karolinne) |
+| **Filipe** | README / Apresentação | [![GitHub](https://img.shields.io/badge/GitHub-FilipeSantos34-181717?logo=github)](https://github.com/FilipeSantos34) |
+
+---
+
+## 🎯 12. Objetivo do projeto
+
+Desenvolver uma solução completa e segura para o controle patrimonial e de empréstimos internos, aplicando na prática conceitos de desenvolvimento Back-end com Java e Spring Boot, segurança stateless com JWT, integração com APIs externas (ViaCEP), documentação OpenAPI, persistência relacional e análise de dados automatizada com Python.
